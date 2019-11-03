@@ -18,14 +18,26 @@
 
 package org.magnum.mobilecloud.video;
 
-import org.springframework.stereotype.Controller;
+import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_SVC_PATH;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.magnum.mobilecloud.video.repository.Video;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
-public class AnEmptyController {
-	
+@RestController
+public class VideoSvcController {
+
+    public static final List<Video> videoList = new CopyOnWriteArrayList<>();
+    public static final AtomicLong nextId = new AtomicLong(0);
+
 	/**
 	 * You will need to create one or more Spring controllers to fulfill the
 	 * requirements of the assignment. If you use this file, please rename it
@@ -47,5 +59,30 @@ public class AnEmptyController {
 	public @ResponseBody String goodLuck(){
 		return "Good Luck!";
 	}
-	
+
+    /**
+     * This endpoint in the API returns a list of the videos that have been added to the server. The
+     * Video objects should be returned as JSON. To manually test this endpoint, run your server and
+     * open this URL in a browser: http://localhost:8080/video
+     *
+     * @return
+     */
+    @RequestMapping(value = VIDEO_SVC_PATH, method = RequestMethod.GET)
+    public Collection<Video> getVideoList() {
+        return videoList;
+    }
+
+    /**
+     * This endpoint allows clients to add Video objects by sending POST requests that have an
+     * application/json body containing the Video object information.
+     *
+     * @param v
+     * @return
+     */
+    @RequestMapping(value = VIDEO_SVC_PATH, method = RequestMethod.POST)
+    public Video addVideo(@RequestBody Video v) {
+        v.setId(nextId.incrementAndGet());
+        videoList.add(v);
+        return v;
+    }
 }
