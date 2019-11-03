@@ -18,7 +18,11 @@
 
 package org.magnum.mobilecloud.video;
 
+import static org.magnum.mobilecloud.video.client.VideoSvcApi.DURATION_PARAMETER;
+import static org.magnum.mobilecloud.video.client.VideoSvcApi.TITLE_PARAMETER;
+import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_DURATION_SEARCH_PATH;
 import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_SVC_PATH;
+import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_TITLE_SEARCH_PATH;
 
 import java.util.Collection;
 
@@ -28,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -82,5 +87,15 @@ public class VideoSvcController {
     public Video addVideo(@RequestBody Video v) {
         videoRepository.save(v);
         return v;
+    }
+
+    @RequestMapping(value = VIDEO_TITLE_SEARCH_PATH, method = RequestMethod.GET)
+    public Collection<Video> findByTitle(@RequestParam(TITLE_PARAMETER) String title) {
+        return videoRepository.findByName(title);
+    }
+
+    @RequestMapping(value = VIDEO_DURATION_SEARCH_PATH, method = RequestMethod.GET)
+    public Collection<Video> findByDurationLessThan(@RequestParam(DURATION_PARAMETER) long duration) {
+        return videoRepository.findByDurationLessThan(duration);
     }
 }
