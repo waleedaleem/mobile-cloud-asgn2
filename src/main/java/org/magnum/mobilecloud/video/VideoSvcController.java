@@ -29,6 +29,9 @@ import java.util.Collection;
 import org.magnum.mobilecloud.video.repository.Video;
 import org.magnum.mobilecloud.video.repository.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -85,8 +88,12 @@ public class VideoSvcController {
      */
     @RequestMapping(value = VIDEO_SVC_PATH, method = RequestMethod.POST)
     public Video addVideo(@RequestBody Video v) {
-        videoRepository.save(v);
-        return v;
+        return videoRepository.save(v);
+    }
+
+    @RequestMapping(value = VIDEO_SVC_PATH + "/{id}", method = RequestMethod.GET)
+    public Video getVideoById(@PathVariable("id") Long id) {
+        return videoRepository.findOne(id);
     }
 
     @RequestMapping(value = VIDEO_TITLE_SEARCH_PATH, method = RequestMethod.GET)
@@ -97,5 +104,31 @@ public class VideoSvcController {
     @RequestMapping(value = VIDEO_DURATION_SEARCH_PATH, method = RequestMethod.GET)
     public Collection<Video> findByDurationLessThan(@RequestParam(DURATION_PARAMETER) long duration) {
         return videoRepository.findByDurationLessThan(duration);
+    }
+
+    @RequestMapping(value = VIDEO_SVC_PATH + "/{id}/like", method = RequestMethod.POST)
+    public ResponseEntity<Void> likeVideo(@PathVariable("id") Long id) {
+        Video video = videoRepository.findOne(id);
+        if (video == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if (video.getLikes() != 0) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        video.setLikes(1);
+        videoRepository.save(video);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = VIDEO_SVC_PATH + "/{id}/unlike", method = RequestMethod.POST)
+    public ResponseEntity<Void> unlikeVideo(@PathVariable("id") Long id) {
+        Video video = videoRepository.findOne(id);
+        if (video == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if (video.getLikes() != 1) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        video.setLikes(0);
+        videoRepository.save(video);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
