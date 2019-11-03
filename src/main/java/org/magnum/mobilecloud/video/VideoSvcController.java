@@ -21,11 +21,10 @@ package org.magnum.mobilecloud.video;
 import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_SVC_PATH;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.magnum.mobilecloud.video.repository.Video;
+import org.magnum.mobilecloud.video.repository.VideoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,8 +34,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class VideoSvcController {
 
-    public static final List<Video> videoList = new CopyOnWriteArrayList<>();
-    public static final AtomicLong nextId = new AtomicLong(0);
+    @Autowired
+    VideoRepository videoRepository;
 
 	/**
 	 * You will need to create one or more Spring controllers to fulfill the
@@ -69,7 +68,7 @@ public class VideoSvcController {
      */
     @RequestMapping(value = VIDEO_SVC_PATH, method = RequestMethod.GET)
     public Collection<Video> getVideoList() {
-        return videoList;
+        return (Collection<Video>) videoRepository.findAll();
     }
 
     /**
@@ -81,8 +80,7 @@ public class VideoSvcController {
      */
     @RequestMapping(value = VIDEO_SVC_PATH, method = RequestMethod.POST)
     public Video addVideo(@RequestBody Video v) {
-        v.setId(nextId.incrementAndGet());
-        videoList.add(v);
+        videoRepository.save(v);
         return v;
     }
 }
