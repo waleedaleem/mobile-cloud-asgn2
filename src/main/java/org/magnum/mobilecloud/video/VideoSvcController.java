@@ -24,7 +24,9 @@ import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_DURATION_SEA
 import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_SVC_PATH;
 import static org.magnum.mobilecloud.video.client.VideoSvcApi.VIDEO_TITLE_SEARCH_PATH;
 
+import java.security.Principal;
 import java.util.Collection;
+import java.util.Set;
 
 import org.magnum.mobilecloud.video.repository.Video;
 import org.magnum.mobilecloud.video.repository.VideoRepository;
@@ -107,27 +109,38 @@ public class VideoSvcController {
     }
 
     @RequestMapping(value = VIDEO_SVC_PATH + "/{id}/like", method = RequestMethod.POST)
-    public ResponseEntity<Void> likeVideo(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> likeVideo(@PathVariable("id") Long id, Principal principal) {
         Video video = videoRepository.findOne(id);
+        Set<String> likedBy;
         if (video == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else if (video.getLikes() != 0) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else {
+            likedBy = video.getLikedBy();
+            if (likedBy.contains(principal.getName())) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
         }
-        video.setLikes(1);
+
+        likedBy.add(principal.getName());
+        video.setLikes(video.getLikes() + 1);
         videoRepository.save(video);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(value = VIDEO_SVC_PATH + "/{id}/unlike", method = RequestMethod.POST)
-    public ResponseEntity<Void> unlikeVideo(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> unlikeVideo(@PathVariable("id") Long id, Principal principal) {
         Video video = videoRepository.findOne(id);
+        Set<String> likedBy = video.getLikedBy();
         if (video == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else if (video.getLikes() != 1) {
+        } else if (!likedBy.contains(principal.getName())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        video.setLikes(0);
+
+        likedBy.remove(principal.getName());
+        if (video.getLikes() > 0) {
+            video.setLikes(video.getLikes() - 1);
+        }
         videoRepository.save(video);
         return new ResponseEntity<>(HttpStatus.OK);
     }
